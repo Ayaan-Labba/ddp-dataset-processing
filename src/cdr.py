@@ -68,6 +68,8 @@ def process_cdr(dataset: List[Dict], output_dir: str, split: str) -> None:
             }
             heads, tails = doc_ent_map.get(h_id, []), doc_ent_map.get(t_id, [])
             if split == 'test':
+                heads = [{'start': head['start'], 'end': head['end'], 'head_text': head['text']} for head in heads]
+                tails = [{'start': tail['start'], 'end': tail['end'], 'tail_text': tail['text']} for tail in tails]
                 rel['head'] = heads
                 rel['tail'] = tails
             else:

@@ -38,16 +38,21 @@ def preprocess_ddi(dataset_dir, output_dir, split='train'):
 
                     # Extract Relation Triplets (RE)
                     relations = []
+                    doc_rel_set = set()
                     for pair in sent.findall('pair'):
-                        e1_id = pair.get('e1')
-                        e2_id = pair.get('e2')
-                        ddi = pair.get('ddi')
-                        rel_type = pair.get('type') if ddi == 'true' else 'None'
-                        head, tail = ent_map[e1_id], ent_map[e2_id]
+                        h_id, t_id, ddi = pair.get('e1'), pair.get('e2'), pair.get('ddi')
+                        if ddi != 'true':
+                            continue
+                        
+                        rel_type = pair.get('type')
+                        head, tail = ent_map[h_id], ent_map[t_id]
                         h_offset, h_text, h_type = [head['start'], head['end']], head['text'], head['type']
                         t_offset, t_text, t_type = [tail['start'], tail['end']], tail['text'], tail['type']
-                        relation = {'head_id': e1_id, 
-                                    'tail_id': e2_id,
+                        if (h_text, t_text, h_type, t_type, rel_type) in doc_rel_set:
+                            continue
+
+                        relation = {'head_id': h_id, 
+                                    'tail_id': t_id,
                                     'head': h_offset, 
                                     'tail': t_offset, 
                                     'head_text': h_text, 
@@ -56,6 +61,7 @@ def preprocess_ddi(dataset_dir, output_dir, split='train'):
                                     'tail_type': t_type, 
                                     'type': rel_type}    
                         relations.append(relation)
+                        doc_rel_set.add((h_text, t_text, h_type, t_type, rel_type))
 
                     # Store parsed sample
                     data_samples.append({
